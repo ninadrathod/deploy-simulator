@@ -1,0 +1,27 @@
+---
+description: Keep README, gitignore, and requirements.txt in sync with App changes
+globs: App/**
+alwaysApply: false
+---
+
+# Root Files Sync
+
+When you add or change code under `App/`, update root project files if needed.
+
+## requirements.txt
+
+- Add any new third-party dependency with a sensible version constraint
+- Remove packages no longer imported anywhere in `App/`
+
+## .gitignore
+
+- Add patterns for new generated artifacts, caches, local env files, or build outputs introduced by the change
+
+## README.md
+
+- Document new features, CLI commands, API endpoints, or setup steps when behavior or usage changes
+- Keep the project description accurate as scope evolves
+
+## When to skip
+
+- Pure refactors with no new deps, artifacts, or user-facing behavior — no root file updates required

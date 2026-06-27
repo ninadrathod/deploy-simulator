@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy Simulator</title>
+  <!-- Styles live in a separate file -->
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <a href="/architecture.html">Architecture</a>
+  </nav>
+  <h1>Deploy Simulator</h1>
+
+  <!-- Section 1: p95 durations (collapsed by default) -->
+  <details class="collapsible-section">
+    <summary>P95 durations</summary>
+    <div class="details-content">
+      <button type="button" id="p95-button">Pull p95 durations</button>
+      <p id="p95-message">Click the button to load p95 data.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Duration (s)</th>
+              <th>Status</th>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Commit SHA</th>
+            </tr>
+          </thead>
+          <tbody id="p95-body">
+            <!-- Rows are inserted by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </details>
+
+  <!-- Section 2: anomalies (collapsed by default) -->
+  <details class="collapsible-section">
+    <summary>Anomalies</summary>
+    <div class="details-content">
+      <button type="button" id="anomalies-button">Pull anomalies</button>
+      <p id="anomalies-message">Click the button to load anomalies.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Service</th>
+              <th>Status</th>
+              <th>Duration (s)</th>
+              <th>Timestamp</th>
+              <th>Commit SHA</th>
+            </tr>
+          </thead>
+          <tbody id="anomalies-body">
+            <!-- Rows are inserted by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </details>
+
+  <!-- Section 3: deployment generation switch + success rate -->
+  <section id="generation-section">
+    <div class="generation-row">
+      <div class="generation-controls">
+        <h2>Deployment generation</h2>
+        <div class="switch-row">
+          <label class="switch">
+            <!-- checked = on (start), unchecked = off (stop) -->
+            <input type="checkbox" id="generation-switch">
+            <span class="slider"></span>
+          </label>
+          <span id="generation-status">Off</span>
+        </div>
+      </div>
+      <!-- Success rate box — refreshes every 10 seconds -->
+      <div class="success-rate-box">
+        <h3>Success Rate</h3>
+        <p id="success-rate-value">—</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: live table of deployments -->
+  <section id="deployments-section">
+    <h2>Deployments</h2>
+    <p id="table-message">Loading…</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Service</th>
+            <th>Status</th>
+            <th>Duration (s)</th>
+            <th>Timestamp</th>
+            <th>Commit SHA</th>
+          </tr>
+        </thead>
+        <tbody id="deployments-body">
+          <!-- Rows are inserted by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    // --- DOM references ---
+    const p95Button = document.getElementById("p95-button");
+    const p95Body = document.getElementById("p95-body");
+    const p95Message = document.getElementById("p95-message");
+    const anomaliesButton = document.getElementById("anomalies-button");
+    const anomaliesBody = document.getElementById("anomalies-body");
+    const anomaliesMessage = document.getElementById("anomalies-message");
+    const generationSwitch = document.getElementById("generation-switch");
+    const generationStatus = document.getElementById("generation-status");
+    const successRateValue = document.getElementById("success-rate-value");
+    const deploymentsBody = document.getElementById("deployments-body");
+    const tableMessage = document.getElementById("table-message");
+
+    // Refresh intervals (milliseconds)
+    const REFRESH_INTERVAL_MS = 5000;
+    const SUCCESS_RATE_INTERVAL_MS = 10000;
+
+    // Map API status values to CSS classes for colour
+    function statusClass(status) {
+      return "status-" + status.replace("_", "-");
+    }
+
+    // --- P95 durations table (loaded on button click) ---
+    p95Button.addEventListener("click", async () => {
+      p95Button.disabled = true;
+      p95Message.textContent = "Loading…";
+
+      try {
+        const response = await fetch("/p95");
+        const results = await response.json();
+
+        if (!response.ok) {
+          throw new Error(results.message || "Failed to load p95 durations");
+        }
+
+        p95Body.innerHTML = "";
+
+        for (const item of results) {
+          const dep = item.deployment;
+          const row = document.createElement("tr");
+
+          // API returns a message object when there are fewer than 5 deployments
+          if (dep.message) {
+            row.innerHTML =
+              "<td>" + item.service + "</td>" +
+              "<td colspan=\"5\">" + dep.message + "</td>";
+          } else {
+            row.innerHTML =
+              "<td>" + item.service + "</td>" +
+              "<td>" + dep.duration + "</td>" +
+              "<td class=\"" + statusClass(dep.status) + "\">" + dep.status + "</td>" +
+              "<td>" + dep.id + "</td>" +
+              "<td>" + dep.timestamp + "</td>" +
+              "<td>" + dep.commit_sha + "</td>";
+          }
+
+          p95Body.appendChild(row);
+        }
+
+        p95Message.textContent = "Loaded p95 for " + results.length + " service(s).";
+      } catch (error) {
+        p95Message.textContent = "Error: " + error.message;
+      } finally {
+        p95Button.disabled = false;
+      }
+    });
+
+    // --- Anomalies table (loaded on button click) ---
+    anomaliesButton.addEventListener("click", async () => {
+      anomaliesButton.disabled = true;
+      anomaliesMessage.textContent = "Loading…";
+
+      try {
+        const response = await fetch("/anomalies");
+        const anomalies = await response.json();
+
+        if (!response.ok) {
+          throw new Error(anomalies.message || "Failed to load anomalies");
+        }
+
+        anomaliesBody.innerHTML = "";
+
+        if (anomalies.length === 0) {
+          anomaliesMessage.textContent = "No anomalies found.";
+          return;
+        }
+
+        for (const d of anomalies) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            "<td>" + d.id + "</td>" +
+            "<td>" + d.service + "</td>" +
+            "<td class=\"" + statusClass(d.status) + "\">" + d.status + "</td>" +
+            "<td>" + d.duration + "</td>" +
+            "<td>" + d.timestamp + "</td>" +
+            "<td>" + d.commit_sha + "</td>";
+          anomaliesBody.appendChild(row);
+        }
+
+        anomaliesMessage.textContent =
+          anomalies.length + " anomal" + (anomalies.length === 1 ? "y" : "ies") + " found.";
+      } catch (error) {
+        anomaliesMessage.textContent = "Error: " + error.message;
+      } finally {
+        anomaliesButton.disabled = false;
+      }
+    });
+
+    // --- Generation switch ---
+    // Sync switch with server state on page load (e.g. after refresh while generation is running)
+    async function syncGenerationSwitch() {
+      try {
+        const response = await fetch("/deployments/status");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load generation status");
+        }
+
+        generationSwitch.checked = data.running;
+        generationStatus.textContent = data.running ? "On" : "Off";
+      } catch (error) {
+        generationSwitch.checked = false;
+        generationStatus.textContent = "Off";
+      }
+    }
+
+    syncGenerationSwitch();
+
+    // Only one state at a time: on calls /start, off calls /stop
+    generationSwitch.addEventListener("change", async () => {
+      const isOn = generationSwitch.checked;
+      const endpoint = isOn ? "/deployments/start" : "/deployments/stop";
+
+      // Disable switch while the API request is in flight
+      generationSwitch.disabled = true;
+      generationStatus.textContent = isOn ? "Starting…" : "Stopping…";
+
+      try {
+        const response = await fetch(endpoint, { method: "POST" });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Request failed");
+        }
+
+        // Sync label with confirmed state
+        generationStatus.textContent = isOn ? "On" : "Off";
+      } catch (error) {
+        // Revert switch if the API call failed
+        generationSwitch.checked = !isOn;
+        generationStatus.textContent = generationSwitch.checked ? "On" : "Off";
+        alert(error.message);
+      } finally {
+        generationSwitch.disabled = false;
+      }
+    });
+
+    // --- Success rate (refreshes every 10 seconds) ---
+    async function loadSuccessRate() {
+      try {
+        const response = await fetch("/success-rate");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load success rate");
+        }
+
+        successRateValue.textContent = data.value.toFixed(1) + "%";
+      } catch (error) {
+        successRateValue.textContent = "Error";
+      }
+    }
+
+    loadSuccessRate();
+    setInterval(loadSuccessRate, SUCCESS_RATE_INTERVAL_MS);
+
+    // --- Deployments table ---
+    // Fetch deployments and rebuild table rows
+    async function loadDeployments() {
+      try {
+        const response = await fetch("/deployments");
+        const deployments = await response.json();
+
+        if (!response.ok) {
+          throw new Error(deployments.message || "Failed to load deployments");
+        }
+
+        // Clear existing rows
+        deploymentsBody.innerHTML = "";
+
+        if (deployments.length === 0) {
+          tableMessage.textContent = "No deployments yet.";
+          return;
+        }
+
+        tableMessage.textContent =
+          deployments.length + " deployment(s) — refreshes every 5 seconds";
+
+        // One table row per deployment
+        for (const d of deployments) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            "<td>" + d.id + "</td>" +
+            "<td>" + d.service + "</td>" +
+            "<td class=\"" + statusClass(d.status) + "\">" + d.status + "</td>" +
+            "<td>" + d.duration + "</td>" +
+            "<td>" + d.timestamp + "</td>" +
+            "<td>" + d.commit_sha + "</td>";
+          deploymentsBody.appendChild(row);
+        }
+      } catch (error) {
+        tableMessage.textContent = "Error: " + error.message;
+      }
+    }
+
+    // Load immediately, then every 5 seconds
+    loadDeployments();
+    setInterval(loadDeployments, REFRESH_INTERVAL_MS);
+  </script>
+</body>
+</html>
