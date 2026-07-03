@@ -52,7 +52,7 @@ uvicorn App.main:app --host 0.0.0.0 --port 8080 --reload
 |-------|------|-------|
 | `id` | int | Unique identifier, >= 1 |
 | `service` | literal | `billing-api`, `auth-service`, `notifications`, `frontend-web` |
-| `status` | literal | `success`, `fail`, `rolled-back` |
+| `status` | literal | `running`, `success`, `fail`, `rolled-back` (`running` has duration 0 until completed) |
 | `duration` | float | Duration in seconds |
 | `timestamp` | str | ISO 8601 timestamp |
 | `commit_sha` | str | Git commit SHA (7–40 chars) |
@@ -61,16 +61,27 @@ uvicorn App.main:app --host 0.0.0.0 --port 8080 --reload
 
 `App/deployment_ops.py` defines `DeploymentOps`, an in-memory store backed by a `Queue[Deployment]`:
 
-- `add_deployment(deployment)` — enqueue a deployment
+- `add_deployment(deployment)` — add a running deployment (status must be `running`, duration 0)
+- `complete_deployment(deployment_id, status, timestamp)` — finalize a running deployment; duration is computed from timestamps
 - `read_deployments(service=None, status=None)` — list deployments, optionally filtered
+- `read_running_deployments(service=None)` — list in-flight deployments
 - `read_deployment(deployment_id)` — fetch one deployment by id
+
+## Metrics
+
+`App/metric.py` defines `MetricOps` for analytics over completed deployments:
+
+- `record_completed(deployment)` — update per-service stats, status counts, and anomaly detection (called by `DeploymentOps` on completion)
+- `read_anomalies()` — list anomalous deployments
+- `success_rate()` — success count / total × 100
+- `p95_duration()` — 95th percentile duration per service
 
 ## Dummy data generation
 
 `App/dummy_generator.py` defines `DummyGenerator` for synthetic deployment records:
 
-- `create_dummy_deployment()` — build one random `Deployment` and return it as a dict
-- `start_deployments(ops)` — background thread adds a new deployment every 10 seconds
+- `create_dummy_deployment()` — build one random running `Deployment` and return it as a dict
+- `start_deployments(ops)` — background thread starts a running deployment every 10 seconds and completes them after a simulated duration
 - `stop_deployments()` — stop the background generator
 
 ## API
@@ -78,7 +89,10 @@ uvicorn App.main:app --host 0.0.0.0 --port 8080 --reload
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/deployments` | List deployments; optional `service`, `status` query filters |
+| GET | `/deployments/latest` | Latest completed deployments (up to 10) |
+| GET | `/deployments/running` | All in-flight running deployments; optional `service` filter |
 | GET | `/deployments/{id}` | Get one deployment by id (`id` >= 1) |
+| PATCH | `/deployments/{id}` | Complete a running deployment (`status`, `timestamp` in body) |
 | GET | `/p95` | P95 duration per service (or `not enough deployments` if fewer than 5) |
 | GET | `/anomalies` | List of anomalous deployments |
 | GET | `/success-rate` | Success rate percentage `{ "status": "success", "value": 95.0 }` |

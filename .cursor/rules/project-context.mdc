@@ -21,15 +21,22 @@ CI/CD deployment simulator. Read this before making changes.
 
 `App/deployment_ops.py` defines `DeploymentOps` with a `Queue[Deployment]` store:
 
-- `add_deployment`, `read_deployments` (optional service/status filters), `read_deployment` (by id)
+- `add_deployment` — enqueue a running deployment (duration must be 0)
+- `complete_deployment(deployment_id, status, timestamp)` — finalize a running deployment; duration is computed from timestamps
+- `read_deployments` (optional service/status filters), `read_deployment` (by id), `read_running_deployments`, `read_latest_completed_deployments`
+
+`App/metric.py` defines `MetricOps` for analytics over completed deployments:
+
+- `record_completed(deployment)` — per-service stats, status counts, anomaly detection
+- `read_anomalies`, `success_rate`, `p95_duration`
 
 `App/dummy_generator.py` defines `DummyGenerator`:
 
-- `create_dummy_deployment()` returns a dict; `start_deployments(ops)` enqueues every 10s; `stop_deployments()` stops the thread
+- `create_dummy_deployment()` returns a running deployment dict; generator completes deployments after a simulated duration
 
 `App/main.py` — FastAPI app with session-scoped `DeploymentOps` and `DummyGenerator` (lifespan startup):
 
-- `GET /deployments`, `GET /deployments/{id}`, `POST /deployments/start`, `POST /deployments/stop`
+- `GET /deployments`, `GET /deployments/latest`, `GET /deployments/running`, `GET /deployments/{id}`, `PATCH /deployments/{id}`, `POST /deployments/start`, `POST /deployments/stop`
 - Structured error responses for 404, 422, 409, 500
 
 `DeploymentOps.add_deployment` rejects duplicate ids and maintains `id → Deployment` index.
@@ -40,7 +47,7 @@ CI/CD deployment simulator. Read this before making changes.
 
 - `id` — int, >= 1
 - `service` — one of: `billing-api`, `auth-service`, `notifications`, `frontend-web`
-- `status` — one of: `success`, `fail`, `rolled-back`
+- `status` — one of: `running`, `success`, `fail`, `rolled-back` (`running` is in-flight; duration is 0 until completion)
 - `duration` — float, seconds, >= 0
 - `timestamp` — str (ISO 8601)
 - `commit_sha` — str, 7–40 characters

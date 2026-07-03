@@ -9,7 +9,9 @@ ServiceName = Literal[
     "frontend-web",
 ]
 
-DeploymentStatus = Literal["success", "fail", "rolled-back"]
+DeploymentStatus = Literal["running", "success", "fail", "rolled-back"]
+
+TerminalDeploymentStatus = Literal["success", "fail", "rolled-back"]
 
 
 class Deployment(BaseModel):

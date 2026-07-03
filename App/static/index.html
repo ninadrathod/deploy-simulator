@@ -87,7 +87,29 @@
     </div>
   </section>
 
-  <!-- Section 4: live table of deployments -->
+  <!-- Section 4: running deployments -->
+  <section id="running-deployments-section">
+    <h2>Running Deployments</h2>
+    <p id="running-table-message">Loading…</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Service</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+            <th>Commit SHA</th>
+          </tr>
+        </thead>
+        <tbody id="running-deployments-body">
+          <!-- Rows are inserted by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 5: latest completed deployments -->
   <section id="deployments-section">
     <h2>Deployments</h2>
     <p id="table-message">Loading…</p>
@@ -121,6 +143,8 @@
     const generationSwitch = document.getElementById("generation-switch");
     const generationStatus = document.getElementById("generation-status");
     const successRateValue = document.getElementById("success-rate-value");
+    const runningDeploymentsBody = document.getElementById("running-deployments-body");
+    const runningTableMessage = document.getElementById("running-table-message");
     const deploymentsBody = document.getElementById("deployments-body");
     const tableMessage = document.getElementById("table-message");
 
@@ -131,6 +155,42 @@
     // Map API status values to CSS classes for colour
     function statusClass(status) {
       return "status-" + status.replace("_", "-");
+    }
+
+    function renderDeploymentRow(d, includeDuration = true) {
+      const row = document.createElement("tr");
+      const durationCell = includeDuration ? "<td>" + d.duration + "</td>" : "";
+      row.innerHTML =
+        "<td>" + d.id + "</td>" +
+        "<td>" + d.service + "</td>" +
+        "<td class=\"" + statusClass(d.status) + "\">" + d.status + "</td>" +
+        durationCell +
+        "<td>" + d.timestamp + "</td>" +
+        "<td>" + d.commit_sha + "</td>";
+      return row;
+    }
+
+    function renderDeploymentTable(
+      deployments,
+      tbody,
+      messageEl,
+      emptyText,
+      countLabel,
+      includeDuration = true
+    ) {
+      tbody.innerHTML = "";
+
+      if (deployments.length === 0) {
+        messageEl.textContent = emptyText;
+        return;
+      }
+
+      messageEl.textContent =
+        deployments.length + " " + countLabel + " — refreshes every 5 seconds";
+
+      for (const d of deployments) {
+        tbody.appendChild(renderDeploymentRow(d, includeDuration));
+      }
     }
 
     // --- P95 durations table (loaded on button click) ---
@@ -288,47 +348,54 @@
     loadSuccessRate();
     setInterval(loadSuccessRate, SUCCESS_RATE_INTERVAL_MS);
 
-    // --- Deployments table ---
-    // Fetch deployments and rebuild table rows
+    // --- Running deployments table ---
+    async function loadRunningDeployments() {
+      try {
+        const response = await fetch("/deployments/running");
+        const deployments = await response.json();
+
+        if (!response.ok) {
+          throw new Error(deployments.message || "Failed to load running deployments");
+        }
+
+        renderDeploymentTable(
+          deployments,
+          runningDeploymentsBody,
+          runningTableMessage,
+          "No running deployments.",
+          "running deployment(s)",
+          false
+        );
+      } catch (error) {
+        runningTableMessage.textContent = "Error: " + error.message;
+      }
+    }
+
+    // --- Latest completed deployments table ---
     async function loadDeployments() {
       try {
-        const response = await fetch("/deployments");
+        const response = await fetch("/deployments/latest");
         const deployments = await response.json();
 
         if (!response.ok) {
           throw new Error(deployments.message || "Failed to load deployments");
         }
 
-        // Clear existing rows
-        deploymentsBody.innerHTML = "";
-
-        if (deployments.length === 0) {
-          tableMessage.textContent = "No deployments yet.";
-          return;
-        }
-
-        tableMessage.textContent =
-          deployments.length + " deployment(s) — refreshes every 5 seconds";
-
-        // One table row per deployment
-        for (const d of deployments) {
-          const row = document.createElement("tr");
-          row.innerHTML =
-            "<td>" + d.id + "</td>" +
-            "<td>" + d.service + "</td>" +
-            "<td class=\"" + statusClass(d.status) + "\">" + d.status + "</td>" +
-            "<td>" + d.duration + "</td>" +
-            "<td>" + d.timestamp + "</td>" +
-            "<td>" + d.commit_sha + "</td>";
-          deploymentsBody.appendChild(row);
-        }
+        renderDeploymentTable(
+          deployments,
+          deploymentsBody,
+          tableMessage,
+          "No completed deployments yet.",
+          "completed deployment(s)"
+        );
       } catch (error) {
         tableMessage.textContent = "Error: " + error.message;
       }
     }
 
-    // Load immediately, then every 5 seconds
+    loadRunningDeployments();
     loadDeployments();
+    setInterval(loadRunningDeployments, REFRESH_INTERVAL_MS);
     setInterval(loadDeployments, REFRESH_INTERVAL_MS);
   </script>
 </body>

@@ -427,6 +427,8 @@ td:last-child {
 
 #deployments-section tbody td:first-child,
 #deployments-section tbody td:last-child,
+#running-deployments-section tbody td:first-child,
+#running-deployments-section tbody td:last-child,
 #anomalies-section tbody td:first-child,
 #anomalies-section tbody td:last-child {
   color: #a5b4fc;
@@ -435,7 +437,8 @@ td:last-child {
 /* --- Status text colors (applied to table cells in JS) --- */
 td.status-success,
 td.status-fail,
-td.status-rolled-back {
+td.status-rolled-back,
+td.status-running {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -455,6 +458,19 @@ td.status-fail {
 
 td.status-rolled-back {
   color: #fcd34d;
+}
+
+td.status-running {
+  color: #93c5fd;
+}
+
+/* --- Running deployments section highlight --- */
+#running-deployments-section {
+  border-left: 3px solid #93c5fd;
+}
+
+#running-deployments-section h2 {
+  color: #93c5fd;
 }
 
 /* --- Deployments section highlight --- */
@@ -558,7 +574,8 @@ td.status-rolled-back {
 
   td.status-success,
   td.status-fail,
-  td.status-rolled-back {
+  td.status-rolled-back,
+  td.status-running {
     font-size: 0.68rem;
   }
 
