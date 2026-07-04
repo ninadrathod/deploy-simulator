@@ -17,7 +17,8 @@ from App.models import Deployment, DeploymentStatus, ServiceName, TerminalDeploy
 
 STATIC_DIR = Path(__file__).parent / "static"
 ROOT_DIR = Path(__file__).parent.parent
-ARCHITECTURE_HTML = ROOT_DIR / "architecture.html"
+PROJECT_DOCS_HTML = ROOT_DIR / "index.html"
+PROJECT_DOCS_CSS = ROOT_DIR / "site.css"
 
 
 class ErrorDetail(BaseModel):
@@ -129,9 +130,14 @@ def serve_index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
-@app.get("/architecture.html")
-def serve_architecture() -> FileResponse:
-    return FileResponse(ARCHITECTURE_HTML)
+@app.get("/project")
+def serve_project_docs() -> FileResponse:
+    return FileResponse(PROJECT_DOCS_HTML)
+
+
+@app.get("/site.css")
+def serve_project_docs_css() -> FileResponse:
+    return FileResponse(PROJECT_DOCS_CSS, media_type="text/css")
 
 
 @app.exception_handler(RequestValidationError)

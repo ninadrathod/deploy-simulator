@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Deploy Simulator — a CI/CD deployment simulator with FastAPI, in-memory analytics, and a live dashboard.">
+  <title>Deploy Simulator</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <canvas id="canvas-bg" aria-hidden="true"></canvas>
+
+  <div class="page">
+    <nav class="site-nav">
+      <a class="logo" href="#top">
+        <span class="logo-mark">DS</span>
+        Deploy Simulator
+      </a>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#workflow">Workflow</a>
+        <a href="https://github.com/ninadrathod/deploy-simulator" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </nav>
+
+    <!-- Section 1: Project intro -->
+    <header class="hero" id="top">
+      <div class="hero-badge reveal">
+        <span class="pulse"></span>
+        CI/CD Simulation Platform
+      </div>
+      <h1 class="reveal">
+        <span class="gradient-text">Deploy Simulator</span>
+      </h1>
+      <p class="hero-lead reveal">
+        A lightweight Python application that mimics real-world deployment pipelines —
+        generating synthetic deploy records, tracking running jobs, computing analytics,
+        and exposing everything through a REST API and live browser dashboard.
+      </p>
+      <div class="hero-actions reveal">
+        <a class="btn btn-primary" href="https://github.com/ninadrathod/deploy-simulator" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/ninadrathod/deploy-simulator#running-the-app" target="_blank" rel="noopener">
+          Run locally →
+        </a>
+      </div>
+      <div class="hero-stats reveal">
+        <div class="stat">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Microservices</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">REST</div>
+          <div class="stat-label">FastAPI backend</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Live</div>
+          <div class="stat-label">Dashboard UI</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0</div>
+          <div class="stat-label">External DB</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section 2: Architecture & stack -->
+    <section id="about" aria-labelledby="about-heading">
+      <div class="section-header reveal">
+        <div class="section-tag">01 — About</div>
+        <h2 id="about-heading">What it does</h2>
+        <p class="section-desc">
+          Deploy Simulator models the lifecycle of CI/CD deployments — from a running job
+          through completion — with per-service metrics, anomaly detection, and success-rate tracking.
+          Everything runs in a single process with no external database.
+        </p>
+      </div>
+    </section>
+
+    <section id="architecture" aria-labelledby="arch-heading">
+      <div class="section-header reveal">
+        <div class="section-tag">02 — Architecture</div>
+        <h2 id="arch-heading">High-level architecture &amp; tech stack</h2>
+        <p class="section-desc">
+          One Uvicorn process hosts the FastAPI API, background generator thread,
+          in-memory store, metrics engine, and static dashboard — all same-origin.
+        </p>
+      </div>
+
+      <div class="arch-grid">
+        <div class="panel panel-wide reveal">
+          <svg class="arch-diagram" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture diagram">
+            <defs>
+              <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#0891b2"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Browser -->
+            <rect x="30" y="40" width="180" height="90" rx="12" fill="#ffffff" stroke="#0891b2" stroke-opacity="0.45"/>
+            <text x="120" y="72" text-anchor="middle" fill="#0f172a" font-family="Outfit,sans-serif" font-size="14" font-weight="600">Browser</text>
+            <text x="120" y="95" text-anchor="middle" fill="#64748b" font-family="JetBrains Mono,monospace" font-size="11">index.html + CSS</text>
+            <text x="120" y="115" text-anchor="middle" fill="#64748b" font-family="JetBrains Mono,monospace" font-size="10">fetch() polling</text>
+
+            <!-- FastAPI box -->
+            <rect x="280" y="20" width="340" height="260" rx="16" fill="#ffffff" stroke="url(#g1)" stroke-width="1.5"/>
+            <text x="450" y="52" text-anchor="middle" fill="#0891b2" font-family="Outfit,sans-serif" font-size="15" font-weight="700">FastAPI · App/main.py</text>
+
+            <rect x="310" y="70" width="130" height="44" rx="8" fill="#f1f5f9" stroke="#0284c7" stroke-opacity="0.4"/>
+            <text x="375" y="97" text-anchor="middle" fill="#0f172a" font-size="12" font-family="Outfit,sans-serif">REST Routes</text>
+
+            <rect x="460" y="70" width="130" height="44" rx="8" fill="#f1f5f9" stroke="#0284c7" stroke-opacity="0.4"/>
+            <text x="525" y="97" text-anchor="middle" fill="#0f172a" font-size="12" font-family="Outfit,sans-serif">Static Files</text>
+
+            <rect x="310" y="130" width="280" height="54" rx="8" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.4"/>
+            <text x="450" y="155" text-anchor="middle" fill="#059669" font-size="12" font-family="JetBrains Mono,monospace">DeploymentOps</text>
+            <text x="450" y="172" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono,monospace">Queue + id index + RLock</text>
+
+            <rect x="310" y="200" width="130" height="54" rx="8" fill="#f1f5f9" stroke="#7c3aed" stroke-opacity="0.4"/>
+            <text x="375" y="225" text-anchor="middle" fill="#7c3aed" font-size="12" font-family="JetBrains Mono,monospace">MetricOps</text>
+            <text x="375" y="242" text-anchor="middle" fill="#64748b" font-size="10">P95 · anomalies</text>
+
+            <rect x="460" y="200" width="130" height="54" rx="8" fill="#f1f5f9" stroke="#d97706" stroke-opacity="0.4"/>
+            <text x="525" y="225" text-anchor="middle" fill="#d97706" font-size="12" font-family="JetBrains Mono,monospace">DummyGenerator</text>
+            <text x="525" y="242" text-anchor="middle" fill="#64748b" font-size="10">daemon thread</text>
+
+            <!-- Uvicorn -->
+            <rect x="680" y="100" width="180" height="70" rx="12" fill="#ffffff" stroke="#059669" stroke-opacity="0.45"/>
+            <text x="770" y="132" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="600" font-family="Outfit,sans-serif">Uvicorn</text>
+            <text x="770" y="152" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono,monospace">ASGI server</text>
+
+            <!-- Arrows -->
+            <path d="M210 85 H280" stroke="#0891b2" stroke-width="1.5" marker-end="url(#arrow)" fill="none" opacity="0.8"/>
+            <path d="M620 135 H680" stroke="#059669" stroke-width="1.5" fill="none" opacity="0.8"/>
+            <path d="M525 254 V290 H375 V254" stroke="#d97706" stroke-width="1.2" fill="none" stroke-dasharray="4 3" opacity="0.7"/>
+            <text x="450" y="308" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono,monospace">every 10s → add running deployment</text>
+
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6" fill="#0891b2"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <div class="panel reveal">
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Tech stack</h3>
+          <div class="stack-grid">
+            <div class="stack-card">
+              <div class="stack-icon">🐍</div>
+              <div class="stack-name">Python 3</div>
+              <div class="stack-role">Runtime &amp; concurrency</div>
+            </div>
+            <div class="stack-card">
+              <div class="stack-icon">⚡</div>
+              <div class="stack-name">FastAPI</div>
+              <div class="stack-role">REST API &amp; validation</div>
+            </div>
+            <div class="stack-card">
+              <div class="stack-icon">🚀</div>
+              <div class="stack-name">Uvicorn</div>
+              <div class="stack-role">ASGI HTTP server</div>
+            </div>
+            <div class="stack-card">
+              <div class="stack-icon">📐</div>
+              <div class="stack-name">Pydantic v2</div>
+              <div class="stack-role">Deployment schema</div>
+            </div>
+            <div class="stack-card">
+              <div class="stack-icon">🧵</div>
+              <div class="stack-name">threading</div>
+              <div class="stack-role">Background generator</div>
+            </div>
+            <div class="stack-card">
+              <div class="stack-icon">🌐</div>
+              <div class="stack-name">Vanilla JS</div>
+              <div class="stack-role">Dashboard — no build step</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <h3 style="margin:0 0 0.75rem;font-size:1rem;">Core modules</h3>
+          <ul class="component-list">
+            <li><strong>models.py</strong> Pydantic <code>Deployment</code> record — id, service, status, duration, timestamp, commit SHA</li>
+            <li><strong>deployment_ops.py</strong> In-memory queue &amp; index; add running jobs, complete with computed duration</li>
+            <li><strong>metric.py</strong> P95 per service, anomaly detection, success-rate analytics</li>
+            <li><strong>dummy_generator.py</strong> Weighted random deploys every 10s; completes after simulated duration</li>
+            <li><strong>main.py</strong> FastAPI lifespan, routes, structured error responses</li>
+            <li><strong>static/</strong> Live dashboard with auto-refresh tables &amp; generation toggle</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Workflow diagrams -->
+    <section id="workflow" aria-labelledby="workflow-heading">
+      <div class="section-header reveal">
+        <div class="section-tag">03 — Workflow</div>
+        <h2 id="workflow-heading">How deployments flow through the system</h2>
+        <p class="section-desc">
+          Select a workflow below to see how data moves between the browser, API,
+          store, metrics engine, and background generator.
+        </p>
+      </div>
+
+      <div class="panel reveal">
+        <div class="workflow-tabs" role="tablist" aria-label="Workflow diagrams">
+          <button class="tab-btn active" role="tab" aria-selected="true" data-tab="lifecycle">Deployment lifecycle</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="generation">Start generation</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="dashboard">Dashboard polling</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="analytics">Analytics</button>
+        </div>
+
+        <!-- Lifecycle -->
+        <div class="workflow-panel active" id="panel-lifecycle" role="tabpanel">
+          <div class="flow-diagram">
+            <svg viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0891b2"/>
+                  <stop offset="50%" stop-color="#0284c7"/>
+                  <stop offset="100%" stop-color="#059669"/>
+                </linearGradient>
+              </defs>
+              <g font-family="Outfit,sans-serif" font-size="13">
+                <rect x="10" y="70" width="130" height="56" rx="10" fill="#f1f5f9" stroke="#d97706" stroke-opacity="0.5"/>
+                <text x="75" y="94" text-anchor="middle" fill="#d97706" font-weight="600">Generator</text>
+                <text x="75" y="112" text-anchor="middle" fill="#64748b" font-size="11">create running</text>
+
+                <rect x="180" y="70" width="130" height="56" rx="10" fill="#f1f5f9" stroke="#0891b2" stroke-opacity="0.5"/>
+                <text x="245" y="94" text-anchor="middle" fill="#0891b2" font-weight="600">running</text>
+                <text x="245" y="112" text-anchor="middle" fill="#64748b" font-size="11">duration = 0</text>
+
+                <rect x="350" y="70" width="130" height="56" rx="10" fill="#f1f5f9" stroke="#0284c7" stroke-opacity="0.5"/>
+                <text x="415" y="94" text-anchor="middle" fill="#0284c7" font-weight="600">sleep(duration)</text>
+                <text x="415" y="112" text-anchor="middle" fill="#64748b" font-size="11">simulated work</text>
+
+                <rect x="520" y="70" width="130" height="56" rx="10" fill="#f1f5f9" stroke="#7c3aed" stroke-opacity="0.5"/>
+                <text x="585" y="94" text-anchor="middle" fill="#7c3aed" font-weight="600">complete</text>
+                <text x="585" y="112" text-anchor="middle" fill="#64748b" font-size="11">PATCH or internal</text>
+
+                <rect x="690" y="70" width="170" height="56" rx="10" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.5"/>
+                <text x="775" y="94" text-anchor="middle" fill="#059669" font-weight="600">success / fail / rolled-back</text>
+                <text x="775" y="112" text-anchor="middle" fill="#64748b" font-size="11">duration computed</text>
+              </g>
+              <path d="M140 98 H180 M310 98 H350 M480 98 H520 M650 98 H690" stroke="url(#flowGrad)" stroke-width="2" fill="none"/>
+              <polygon points="175,98 168,94 168,102" fill="#0891b2"/>
+              <polygon points="305,98 298,94 298,102" fill="#0284c7"/>
+              <polygon points="475,98 468,94 468,102" fill="#0284c7"/>
+              <polygon points="645,98 638,94 638,102" fill="#7c3aed"/>
+              <text x="440" y="165" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono,monospace">MetricOps.record_completed() runs on every terminal status</text>
+            </svg>
+          </div>
+          <p class="flow-caption">
+            <strong>Running-first model:</strong> Deployments enter the store with status
+            <code>running</code> and zero duration. After a simulated wait, the generator (or a
+            <code>PATCH /deployments/{id}</code> call) finalizes them with a terminal status and
+            a duration derived from timestamps.
+          </p>
+        </div>
+
+        <!-- Generation -->
+        <div class="workflow-panel" id="panel-generation" role="tabpanel">
+          <div class="flow-diagram">
+            <svg viewBox="0 0 880 220" xmlns="http://www.w3.org/2000/svg">
+              <g font-family="Outfit,sans-serif" font-size="13">
+                <rect x="20" y="80" width="120" height="50" rx="10" fill="#f1f5f9" stroke="#0891b2" stroke-opacity="0.5"/>
+                <text x="80" y="110" text-anchor="middle" fill="#0f172a">Toggle ON</text>
+
+                <rect x="180" y="80" width="150" height="50" rx="10" fill="#f1f5f9" stroke="#0284c7" stroke-opacity="0.5"/>
+                <text x="255" y="105" text-anchor="middle" fill="#0284c7" font-family="JetBrains Mono,monospace" font-size="11">POST /deployments/start</text>
+
+                <rect x="370" y="80" width="160" height="50" rx="10" fill="#f1f5f9" stroke="#d97706" stroke-opacity="0.5"/>
+                <text x="450" y="105" text-anchor="middle" fill="#d97706">DummyGenerator</text>
+
+                <rect x="570" y="80" width="140" height="50" rx="10" fill="#f1f5f9" stroke="#7c3aed" stroke-opacity="0.5"/>
+                <text x="640" y="105" text-anchor="middle" fill="#7c3aed">Thread loop</text>
+
+                <rect x="750" y="80" width="110" height="50" rx="10" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.5"/>
+                <text x="805" y="105" text-anchor="middle" fill="#059669" font-size="11">add_deployment</text>
+              </g>
+              <path d="M140 105 H180 M330 105 H370 M530 105 H570 M710 105 H750" stroke="#0891b2" stroke-width="1.5" fill="none" opacity="0.7"/>
+              <path d="M450 130 V170 H200 V130" stroke="#d97706" stroke-width="1" fill="none" stroke-dasharray="5 4" opacity="0.5"/>
+              <text x="320" y="188" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono,monospace">repeats every 10 seconds until POST /deployments/stop</text>
+            </svg>
+          </div>
+          <p class="flow-caption">
+            <strong>Background generation:</strong> Starting the generator spins a daemon thread
+            that enqueues a new running deployment every 10 seconds. Stopping sets a thread event;
+            the id counter persists across start/stop cycles within the same server session.
+          </p>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="workflow-panel" id="panel-dashboard" role="tabpanel">
+          <div class="flow-diagram">
+            <svg viewBox="0 0 880 240" xmlns="http://www.w3.org/2000/svg">
+              <rect x="30" y="30" width="820" height="180" rx="14" fill="none" stroke="#0891b2" stroke-opacity="0.15"/>
+              <text x="440" y="58" text-anchor="middle" fill="#0891b2" font-size="13" font-family="Outfit,sans-serif" font-weight="600">Browser dashboard (App/static/index.html)</text>
+
+              <g font-family="JetBrains Mono,monospace" font-size="11">
+                <rect x="60" y="80" width="180" height="44" rx="8" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.4"/>
+                <text x="150" y="107" text-anchor="middle" fill="#059669">GET /deployments/running</text>
+                <text x="150" y="145" text-anchor="middle" fill="#64748b" font-size="10" font-family="Outfit,sans-serif">every 5s</text>
+
+                <rect x="280" y="80" width="180" height="44" rx="8" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.4"/>
+                <text x="370" y="107" text-anchor="middle" fill="#059669">GET /deployments/latest</text>
+                <text x="370" y="145" text-anchor="middle" fill="#64748b" font-size="10" font-family="Outfit,sans-serif">every 5s</text>
+
+                <rect x="500" y="80" width="180" height="44" rx="8" fill="#f1f5f9" stroke="#7c3aed" stroke-opacity="0.4"/>
+                <text x="590" y="107" text-anchor="middle" fill="#7c3aed">GET /success-rate</text>
+                <text x="590" y="145" text-anchor="middle" fill="#64748b" font-size="10" font-family="Outfit,sans-serif">every 10s</text>
+
+                <rect x="720" y="80" width="110" height="44" rx="8" fill="#f1f5f9" stroke="#d97706" stroke-opacity="0.4"/>
+                <text x="775" y="107" text-anchor="middle" fill="#d97706">GET /p95</text>
+                <text x="775" y="145" text-anchor="middle" fill="#64748b" font-size="10" font-family="Outfit,sans-serif">on demand</text>
+              </g>
+              <text x="440" y="195" text-anchor="middle" fill="#64748b" font-size="11" font-family="Outfit,sans-serif">Same-origin fetch — no separate frontend server required</text>
+            </svg>
+          </div>
+          <p class="flow-caption">
+            <strong>Live UI:</strong> The dashboard polls running and completed deployments
+            automatically, refreshes success rate on a slower interval, and loads P95 / anomaly
+            data on button click — all against the same FastAPI process.
+          </p>
+        </div>
+
+        <!-- Analytics -->
+        <div class="workflow-panel" id="panel-analytics" role="tabpanel">
+          <div class="flow-diagram">
+            <svg viewBox="0 0 880 260" xmlns="http://www.w3.org/2000/svg">
+              <rect x="340" y="20" width="200" height="50" rx="10" fill="#f1f5f9" stroke="#059669" stroke-opacity="0.5"/>
+              <text x="440" y="50" text-anchor="middle" fill="#059669" font-family="Outfit,sans-serif" font-size="13" font-weight="600">Deployment completes</text>
+
+              <path d="M440 70 V100" stroke="#059669" stroke-width="1.5"/>
+
+              <rect x="60" y="110" width="220" height="70" rx="10" fill="#f1f5f9" stroke="#0891b2" stroke-opacity="0.4"/>
+              <text x="170" y="138" text-anchor="middle" fill="#0891b2" font-weight="600" font-family="Outfit,sans-serif">P95 duration</text>
+              <text x="170" y="158" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono,monospace">95th percentile per service</text>
+              <text x="170" y="172" text-anchor="middle" fill="#64748b" font-size="10">needs ≥ 5 completed</text>
+
+              <rect x="330" y="110" width="220" height="70" rx="10" fill="#f1f5f9" stroke="#7c3aed" stroke-opacity="0.4"/>
+              <text x="440" y="138" text-anchor="middle" fill="#7c3aed" font-weight="600" font-family="Outfit,sans-serif">Anomaly detection</text>
+              <text x="440" y="158" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono,monospace">duration &gt; avg(last 5) + 2×SPREAD</text>
+              <text x="440" y="172" text-anchor="middle" fill="#64748b" font-size="10">SPREAD = 5 seconds</text>
+
+              <rect x="600" y="110" width="220" height="70" rx="10" fill="#f1f5f9" stroke="#d97706" stroke-opacity="0.4"/>
+              <text x="710" y="138" text-anchor="middle" fill="#d97706" font-weight="600" font-family="Outfit,sans-serif">Success rate</text>
+              <text x="710" y="158" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono,monospace">success / total × 100</text>
+              <text x="710" y="172" text-anchor="middle" fill="#64748b" font-size="10">per-service counters</text>
+
+              <path d="M440 100 L170 110 M440 100 L440 110 M440 100 L710 110" stroke="#059669" stroke-width="1.2" fill="none" opacity="0.5"/>
+
+              <rect x="280" y="210" width="320" height="40" rx="8" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.35"/>
+              <text x="440" y="235" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono,monospace">MetricOps ← called from DeploymentOps.complete_deployment()</text>
+            </svg>
+          </div>
+          <p class="flow-caption">
+            <strong>Metrics on completion:</strong> Every finalized deployment triggers
+            <code>MetricOps.record_completed()</code>, which updates per-service statistics,
+            checks for duration anomalies against recent history, and increments status counters
+            used by the success-rate endpoint.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>
+        Built with FastAPI &amp; Python ·
+        <a href="https://github.com/ninadrathod/deploy-simulator">ninadrathod/deploy-simulator</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      // ── Animated particle grid background ──
+      const canvas = document.getElementById("canvas-bg");
+      const ctx = canvas.getContext("2d");
+      let particles = [];
+      let w, h, animId;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+
+      function initParticles() {
+        particles = [];
+        const count = Math.min(80, Math.floor(w * h / 18000));
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.25,
+            vy: (Math.random() - 0.5) * 0.25,
+            r: Math.random() * 1.5 + 0.5,
+          });
+        }
+      }
+
+      function drawBg() {
+        ctx.fillStyle = "#f4f7fb";
+        ctx.fillRect(0, 0, w, h);
+
+        const grad = ctx.createRadialGradient(w * 0.5, 0, 0, w * 0.5, 0, w * 0.7);
+        grad.addColorStop(0, "rgba(8, 145, 178, 0.08)");
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      function tick() {
+        drawBg();
+        ctx.strokeStyle = "rgba(8, 145, 178, 0.12)";
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(8, 145, 178, 0.35)";
+          ctx.fill();
+
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x;
+            const dy = p.y - q.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.globalAlpha = 1 - dist / 120;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.globalAlpha = 1;
+        animId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener("resize", function () {
+        resize();
+        initParticles();
+      });
+      resize();
+      initParticles();
+      tick();
+
+      // ── Scroll reveal ──
+      const revealEls = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      );
+      revealEls.forEach(function (el) { observer.observe(el); });
+
+      // ── Workflow tabs ──
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const panels = document.querySelectorAll(".workflow-panel");
+
+      tabBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const tab = btn.getAttribute("data-tab");
+
+          tabBtns.forEach(function (b) {
+            b.classList.remove("active");
+            b.setAttribute("aria-selected", "false");
+          });
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+
+          panels.forEach(function (panel) {
+            panel.classList.remove("active");
+          });
+          document.getElementById("panel-" + tab).classList.add("active");
+        });
+      });
+
+      // Stagger hero reveals on load
+      document.querySelectorAll(".hero .reveal").forEach(function (el, i) {
+        el.style.transitionDelay = i * 0.1 + "s";
+        setTimeout(function () { el.classList.add("visible"); }, 80);
+      });
+    })();
+  </script>
+</body>
+</html>
